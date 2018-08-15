@@ -1,0 +1,71 @@
+$base: 8px;
+$cont-padding: $base * 3 !global;
+$cont-max-width: 1200px !global;
+$grid-gutter: $base * 2;
+
+$tablet: 768px;
+$desktop: 1024px;
+
+$neat-grid: (
+  columns: 6,
+  gutter: $grid-gutter / 2,
+);
+
+$neat-grid-tablet: (
+  media: $tablet,
+  columns: 12,
+  gutter: $grid-gutter
+);
+
+$neat-grid-desktop: (
+  media: $desktop,
+  columns: 12,
+  gutter: $grid-gutter
+);
+
+$neat-grid-desktop-10: (
+  media: $desktop,
+  columns: 10,
+  gutter: $grid-gutter
+);
+
+@mixin at-least-tablet {
+  @media (min-width: $tablet) {
+    @content;
+  }
+}
+
+@mixin at-least-desktop {
+  @media (min-width: $desktop) {
+    @content;
+  }
+}
+
+@mixin media($breakpoint) {
+  @media (min-width: #{$breakpoint}) {
+    @content;
+  }
+}
+
+@mixin column-centered() {
+  float: none;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+@mixin grid-saver() {
+  margin-left: - $grid-gutter;
+  margin-right: - $grid-gutter;
+}
+
+@mixin column-readable {
+  @include grid-column(6);
+  @include at-least-tablet {
+    @include grid-column(6);
+    @include column-centered();
+  }
+  @include at-least-desktop {
+    @include grid-column(8);
+    @include column-centered();
+  }
+}

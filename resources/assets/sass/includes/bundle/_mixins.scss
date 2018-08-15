@@ -1,0 +1,112 @@
+$transition-animation: cubic-bezier(0.45, 0, 0.55, 1);
+$transition-timing: .3s;
+
+@mixin transition( $attributes: () ) {
+  @if length( $attributes ) >= 1 {
+
+    $value: '';
+
+    @each $attr, $time in $attributes {
+
+      @if $time {
+        $value: #{$value} #{$attr} #{$time};
+      } @else {
+        $value: #{$value} #{$attr} #{$transition-timing}
+      }
+
+      @if index( $attributes, $attr ) != length( $attributes ) {
+        $value: '#{$value}, ';
+      }
+    }
+
+    transition: #{$value} $transition-animation;
+  } @else {
+    transition: all .3s $transition-animation;
+  }
+}
+
+@mixin transition-linear() {
+  transition: all .2s;
+}
+
+@function assetImg($img) {
+  @return "/front/images/#{$img}";
+}
+
+@function assetSvg($svg) {
+  @return "/front/svg/#{$svg}";
+}
+
+@mixin absolute-center() {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@mixin absolute-center-vertical() {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+@mixin absolute-center-horizontal() {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+@mixin absolute-all-sides() {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+@mixin btn-base() {
+  cursor: pointer;
+  display: inline-block;
+  @include transition;
+  @include font-medium;
+  border-radius: 27px;
+  border-color: transparent;
+  font-size: 14px;
+  text-align: center;
+  text-transform: uppercase;
+
+  @include at-least-tablet {
+    font-size: 16px;
+  }
+}
+
+@mixin aspect-ratio($width, $height) {
+  position: relative;
+  &:before {
+    display: block;
+    content: "";
+    width: 100%;
+    padding-top: ($height / $width) * 100%;
+  }
+  .image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+}
+
+@mixin container( $local-max-width: $cont-max-width) {
+  margin: 0 auto;
+  max-width: $cont-max-width;
+  padding-left: $cont-padding;
+  padding-right: $cont-padding;
+  position: relative;
+  width: 100%;
+
+  @include grid-media($neat-grid-desktop) {
+    padding-left: $grid-gutter;
+    padding-right: $grid-gutter;
+  }
+}

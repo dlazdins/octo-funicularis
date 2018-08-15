@@ -1,0 +1,19 @@
+@mixin font-light() {
+  font-family: "Roboto-Light", sans-serif;
+  font-weight: normal;
+}
+
+@mixin font-regular() {
+  font-family: "Roboto-Regular", sans-serif;
+  font-weight: normal;
+}
+
+@mixin font-medium() {
+  font-family: "Roboto-Medium", sans-serif;
+  font-weight: normal;
+}
+
+@mixin font-bold() {
+  font-family: "Roboto-Bold", sans-serif;
+  font-weight: normal;
+}

@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "baseUrl": "./resources/assets/js"
+  },
+  "exclude": [
+    "vendor",
+    "node_modules"
+  ]
+}
