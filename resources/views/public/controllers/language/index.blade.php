@@ -1,7 +1,9 @@
 @extends('public.layouts.main')
 
 @section('content')
-    <div class="landing">
-        @svg('cube')
-    </div>
+<head>
+    <h1>
+        Hello!
+    </h1>
+</head>
 @endsection

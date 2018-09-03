@@ -33,3 +33,11 @@ Page::register(TextPage::class)
     ->routes(function () {
         Route::get('/', TextPageController::class . '@index')->name('index');
     });
+
+Page::register(ResultPage::class)
+    ->fields(function (FieldSet $fieldSet) {
+        $fieldSet->add(new Text( 'title' ) )->rules('required');
+    })
+    ->routes(function () {
+        Route::get('/', ResultPageController::class . '@index')->name('index');
+    });
