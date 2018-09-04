@@ -14,6 +14,8 @@ return [
         Arbory\Base\Http\Controllers\Admin\SettingsController::class,
         Arbory\Base\Http\Controllers\Admin\TranslationsController::class,
         Arbory\Base\Http\Controllers\Admin\RedirectsController::class,
+        \App\Http\Controllers\Admin\ReservationsController::class,
+        \App\Http\Controllers\Admin\ItemsController::class,
         [
             Arbory\Base\Http\Controllers\Admin\UsersController::class,
             Arbory\Base\Http\Controllers\Admin\RolesController::class
