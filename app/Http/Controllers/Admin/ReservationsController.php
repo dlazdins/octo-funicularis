@@ -2,17 +2,32 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Admin\Form\Fields\HorizontalLine;
+use App\Admin\Form\Fields\Table;
+use App\Admin\Grid\Builder;
+use App\Admin\Tools\XlsxExporter;
+use App\Cart\Cart;
 use App\Http\Controllers\Controller;
+use App\Payment\PaymentType;
+use App\Reservations\Invoice;
+use App\Reservations\ReservationDetails;
 use App\Reservations\ReservationStatus;
 use Arbory\Base\Admin\Form;
 use Arbory\Base\Admin\Form\Fields\HasOne;
 use Arbory\Base\Admin\Form\Fields\Hidden;
+use Arbory\Base\Admin\Form\Fields\Select;
 use Arbory\Base\Admin\Form\Fields\Text;
+use Arbory\Base\Admin\Form\Fields\Textarea;
+use Arbory\Base\Admin\Form\Fields\Translatable;
 use Arbory\Base\Admin\Form\FieldSet;
 use Arbory\Base\Admin\Grid;
+use Arbory\Base\Admin\Grid\Filter;
 use Arbory\Base\Admin\Traits\Crudify;
+use Arbory\Base\Html\Html;
+use Arbory\Base\Html\HtmlString;
 use Illuminate\Database\Eloquent\Model;
 use App\Reservations\Reservation;
+use Illuminate\Http\Request;
 
 class ReservationsController extends Controller
 {
@@ -24,63 +39,77 @@ class ReservationsController extends Controller
      * @param Model $model
      * @return Form
      */
-    protected function form( Model $model )
-    {
-//        Admin::assets()->css('arbory/css/admin.css');
+//    protected function form(Model $model)
+//    {
+//        $form = $this->module()->form($model, function (Form $form){
+//            $form->addField(new Text('score_min'))->setLabel('Min score:')->rules('required');
+//            $form->addField(new Text('score_max'))->setLabel('Max score:')->rules('required');
+//            $form->addField(new Text('coupon_code'))->setLabel('Coupon code:')->rules('required');
+//            $form->addField(new Text('discount'))->setLabel('Discount:')->rules('required');
+//            $form->addField(new Translatable((new Text('link'))->rules('required')->setLabel('Link')));
+//            $form->addField(new Translatable((new Text('heading'))->rules('required')->setLabel('Heading')));
+//        });
+//
+//        return $form;
+//    }
 
-        $form = $this->module()->form($model, function (Form $form){
-            $form->addField(new Hidden('id'));
-
-            $form->addField((new Select('status'))
-                ->options(ReservationStatus::getLabels())
-                ->setLabel(trans('admin/reservation.status')));
-
-            $form->addField((new Select('payment_type'))
-                ->options(PaymentType::getLabels())
-                ->setLabel(trans('admin/reservation.payment_type')));
-
-            $form->addField(new HasOne('owner', function (FieldSet $fieldSet){
-                $model = $fieldSet->getModel();
-                if (method_exists($model, 'isLegal')) {
-                    if ($model->isLegal()) {
-                        $fieldSet->add((new HorizontalLine(trans('admin/reservation.person_type_legal'))));
-                        $fieldSet->add((new Text('company_name'))->setLabel(trans('admin/reservation.company_name')));
-                        $fieldSet->add((new Text('company_code'))->setLabel(trans('admin/reservation.company_code')));
-                        $fieldSet->add((new Text('company_country'))->setLabel(trans('admin/reservation.company_country')));
-                        $fieldSet->add((new Text('company_city'))->setLabel(trans('admin/reservation.company_city')));
-                        $fieldSet->add((new Text('company_postal_code'))->setLabel(trans('admin/reservation.company_postal_code')));
-                        $fieldSet->add((new Text('company_street'))->setLabel(trans('admin/reservation.company_street')));
-                        $fieldSet->add((new Text('company_account'))->setLabel(trans('admin/reservation.company_account')));
-                        $fieldSet->add((new Text('company_bank'))->setLabel(trans('admin/reservation.company_bank')));
-                        $fieldSet->add((new Text('company_person'))->setLabel(trans('admin/reservation.company_person')));
-                    } else {
-                        $fieldSet->add((new HorizontalLine(trans('admin/reservation.person_type_private'))));
-                        $fieldSet->add((new Text('first_name'))->setLabel(trans('admin/reservation.first_name')));
-                        $fieldSet->add((new Text('last_name'))->setLabel(trans('admin/reservation.last_name')));
-                    }
-                }
-
-                $fieldSet->add((new HorizontalLine(trans('admin/reservation.buyer_contacts')))
-                    ->setLabel(trans('admin/reservation.buyer_contacts')));
-
-                $fieldSet->add((new Text('phone'))->setLabel(trans('admin/reservation.phone')));
-                $fieldSet->add((new Text('email'))->setLabel(trans('admin/reservation.email')));
-                $fieldSet->add((new Textarea('comments'))->setLabel(trans('admin/reservation.comments')));
-            }));
-
-            $form->addField(new HorizontalLine(trans('admin/reservation.reservation')));
-            $form->addField((new Table('name'))
-                ->setHeader([
-                    trans('admin/reservation.table.number'),
-                    trans('admin/reservation.table.product'),
-                    trans('admin/reservation.table.price'),
-                    trans('admin/reservation.table.qty'),
-                    trans('admin/reservation.table.product_total')
-                ])->setBody($this->getFormattedRows($form->getModel())));
-        });
-
-        return $form;
-    }
+//    protected function form( Model $model )
+//    {
+////        Admin::assets()->css('arbory/css/admin.css');
+//
+//        $form = $this->module()->form($model, function (Form $form){
+//            $form->addField(new Hidden('id'));
+//
+//            $form->addField((new Select('status'))
+//                ->options(ReservationStatus::getLabels())
+//                ->setLabel(trans('admin/reservation.status')));
+//
+//            $form->addField((new Select('payment_type'))
+//                ->options(PaymentType::getLabels())
+//                ->setLabel(trans('admin/reservation.payment_type')));
+//
+//            $form->addField(new HasOne('owner', function (FieldSet $fieldSet){
+//                $model = $fieldSet->getModel();
+//                if (method_exists($model, 'isLegal')) {
+//                    if ($model->isLegal()) {
+//                        $fieldSet->add((new HorizontalLine(trans('admin/reservation.person_type_legal'))));
+//                        $fieldSet->add((new Text('company_name'))->setLabel(trans('admin/reservation.company_name')));
+//                        $fieldSet->add((new Text('company_code'))->setLabel(trans('admin/reservation.company_code')));
+//                        $fieldSet->add((new Text('company_country'))->setLabel(trans('admin/reservation.company_country')));
+//                        $fieldSet->add((new Text('company_city'))->setLabel(trans('admin/reservation.company_city')));
+//                        $fieldSet->add((new Text('company_postal_code'))->setLabel(trans('admin/reservation.company_postal_code')));
+//                        $fieldSet->add((new Text('company_street'))->setLabel(trans('admin/reservation.company_street')));
+//                        $fieldSet->add((new Text('company_account'))->setLabel(trans('admin/reservation.company_account')));
+//                        $fieldSet->add((new Text('company_bank'))->setLabel(trans('admin/reservation.company_bank')));
+//                        $fieldSet->add((new Text('company_person'))->setLabel(trans('admin/reservation.company_person')));
+//                    } else {
+//                        $fieldSet->add((new HorizontalLine(trans('admin/reservation.person_type_private'))));
+//                        $fieldSet->add((new Text('first_name'))->setLabel(trans('admin/reservation.first_name')));
+//                        $fieldSet->add((new Text('last_name'))->setLabel(trans('admin/reservation.last_name')));
+//                    }
+//                }
+//
+//                $fieldSet->add((new HorizontalLine(trans('admin/reservation.buyer_contacts')))
+//                    ->setLabel(trans('admin/reservation.buyer_contacts')));
+//
+//                $fieldSet->add((new Text('phone'))->setLabel(trans('admin/reservation.phone')));
+//                $fieldSet->add((new Text('email'))->setLabel(trans('admin/reservation.email')));
+//                $fieldSet->add((new Textarea('comments'))->setLabel(trans('admin/reservation.comments')));
+//            }));
+//
+//            $form->addField(new HorizontalLine(trans('admin/reservation.reservation')));
+//            $form->addField((new Table('name'))
+//                ->setHeader([
+//                    trans('admin/reservation.table.number'),
+//                    trans('admin/reservation.table.product'),
+//                    trans('admin/reservation.table.price'),
+//                    trans('admin/reservation.table.qty'),
+//                    trans('admin/reservation.table.product_total')
+//                ])->setBody($this->getFormattedRows($form->getModel())));
+//        });
+//
+//        return $form;
+//    }
 
     /**
      * @param Reservation $reservation
@@ -170,12 +199,11 @@ class ReservationsController extends Controller
 
         // custom grid filters
         $grid->filter(function (Filter $filter) use ($request){
-            $filter->getQuery()->reservationBy(
-                $request->get('_reservation_by', 'created_at'),
-                $request->get('_reservation', 'desc')
+            $filter->getQuery()->orderBy(
+                $request->get('_order_by', 'created_at'),
+                $request->get('_order', 'desc')
             );
             $filter->setPerPage(50);
-            $filter->getQuery()->where('owner_type', ReservationDetails::class);
 
             if ($from = request()->get('date_from')) {
                 $filter->getQuery()->where('created_at', '>=', $from);
@@ -194,101 +222,101 @@ class ReservationsController extends Controller
         return $grid;
     }
 
-//    /**
-//     * @return array
-//     */
-//    protected function getFilterInputs()
-//    {
-//        $inputs = [];
-//        foreach (['date_from', 'date_to'] as $name) {
-//            $inputs[] = Html::div([
-//                Html::label(trans('admin/common.' . $name) . ':')->addAttributes(['for' => $name]),
-//                Html::input()->setName($name)
-//                    ->addClass('text datetime-picker')
-//                    ->setValue(request()->get($name))
-//                    ->addAttributes(['autocomplete' => 'off'])
-//            ])->addClass('filter');
-//        }
-//
-//        return $inputs;
-//    }
+    /**
+     * @return array
+     */
+    protected function getFilterInputs()
+    {
+        $inputs = [];
+        foreach (['date_from', 'date_to'] as $name) {
+            $inputs[] = Html::div([
+                Html::label(trans('admin/common.' . $name) . ':')->addAttributes(['for' => $name]),
+                Html::input()->setName($name)
+                    ->addClass('text datetime-picker')
+                    ->setValue(request()->get($name))
+                    ->addAttributes(['autocomplete' => 'off'])
+            ])->addClass('filter');
+        }
 
-//    /**
-//     * @param Request $request
-//     * @return mixed
-//     */
-//    public function invoice(Request $request)
-//    {
-//        $id = $request->get('reservationId');
-//        $reservation = Reservation::query()->where('id', $id)->firstOrFail();
-//        $invoice = new Invoice($reservation);
-//        return $invoice->open();
-//    }
-//
-//    public function export()
-//    {
-//        $rows = Reservation::query()
-//            ->reservationBy('created_at', 'desc');
-//
-//        if ($from = request()->get('date_from')) {
-//            $rows->where('created_at', '>=', $from);
-//        }
-//        if ($to = request()->get('date_to')) {
-//            $rows->where('created_at', '<=', $to);
-//        }
-//
-//        $header = [
-//            'Added', 'ID', 'Number', 'Sum', 'Payment type', 'Status', 'Person type',
-//            'First name', 'Last name', 'Email', 'Code', 'Contact person',
-//            'Company name', 'Company account', 'Company bank', 'Company city', 'Company street',
-//            'Company country', 'Company postal code',
-//        ];
-//
-//        $batchSize = 1000;
-//        $writer = WriterFactory::create(Type::XLSX);
-//        $writer->openToBrowser('reservations-export.xlsx');
-//        $style = (new StyleBuilder())->setFontSize(9)->setShouldWrapText(false)->build();
-//        if (!empty($header)) {
-//            $headerStyle = (new StyleBuilder())->setFontSize(9)->setFontBold()
-//                ->setBackgroundColor(Color::BLACK)->setFontColor(Color::WHITE)
-//                ->setShouldWrapText(false)->build();
-//            $writer->addRowWithStyle($header, $headerStyle);
-//        }
-//
-//        $i = 0;
-//        while (($data = $rows->take($batchSize)->skip($i)->get())->count() > 0) {
-//            $add = [];
-//            /** @var Reservation $reservation */
-//            foreach ($data as $reservation) {
-//                /** @var ReservationDetails $owner */
-//                $owner = $reservation->owner;
-//                $add[] = [
-//                    $reservation->created_at->format('Y-m-d H:i:s'),
-//                    $reservation->id,
-//                    $reservation->getIdentifier(),
-//                    $reservation->amount_string,
-//                    PaymentType::getLabel($reservation->payment_type),
-//                    ReservationStatus::getLabel($reservation->status),
-//                    !empty($owner) ? $owner->person_type : null,
-//                    !empty($owner) ? $owner->first_name : null,
-//                    !empty($owner) ? $owner->last_name : null,
-//                    !empty($owner) ? $owner->email : null,
-//                    !empty($owner) ? $owner->code : null,
-//                    !empty($owner) ? $owner->company_person : null,
-//                    !empty($owner) ? $owner->company_name : null,
-//                    !empty($owner) ? $owner->company_account : null,
-//                    !empty($owner) ? $owner->company_bank : null,
-//                    !empty($owner) ? $owner->company_city : null,
-//                    !empty($owner) ? $owner->company_street : null,
-//                    !empty($owner) ? $owner->company_country : null,
-//                    !empty($owner) ? $owner->company_postal_code : null,
-//                ];
-//            }
-//
-//            $writer->addRowsWithStyle($add, $style);
-//            $i = $i + $batchSize;
-//        }
-//        $writer->close();
-//        die;
-//    }
+        return $inputs;
+    }
+
+    /**
+     * @param Request $request
+     * @return mixed
+     */
+    public function invoice(Request $request)
+    {
+        $id = $request->get('reservationId');
+        $reservation = Reservation::query()->where('id', $id)->firstOrFail();
+        $invoice = new Invoice($reservation);
+        return $invoice->open();
+    }
+
+    public function export()
+    {
+        $rows = Reservation::query()
+            ->orderBy('created_at', 'desc');
+
+        if ($from = request()->get('date_from')) {
+            $rows->where('created_at', '>=', $from);
+        }
+        if ($to = request()->get('date_to')) {
+            $rows->where('created_at', '<=', $to);
+        }
+
+        $header = [
+            'Added', 'ID', 'Number', 'Sum', 'Payment type', 'Status', 'Person type',
+            'First name', 'Last name', 'Email', 'Code', 'Contact person',
+            'Company name', 'Company account', 'Company bank', 'Company city', 'Company street',
+            'Company country', 'Company postal code',
+        ];
+
+        $batchSize = 1000;
+        $writer = WriterFactory::create(Type::XLSX);
+        $writer->openToBrowser('reservations-export.xlsx');
+        $style = (new StyleBuilder())->setFontSize(9)->setShouldWrapText(false)->build();
+        if (!empty($header)) {
+            $headerStyle = (new StyleBuilder())->setFontSize(9)->setFontBold()
+                ->setBackgroundColor(Color::BLACK)->setFontColor(Color::WHITE)
+                ->setShouldWrapText(false)->build();
+            $writer->addRowWithStyle($header, $headerStyle);
+        }
+
+        $i = 0;
+        while (($data = $rows->take($batchSize)->skip($i)->get())->count() > 0) {
+            $add = [];
+            /** @var Reservation $reservation */
+            foreach ($data as $reservation) {
+                /** @var ReservationDetails $owner */
+                $owner = $reservation->owner;
+                $add[] = [
+                    $reservation->created_at->format('Y-m-d H:i:s'),
+                    $reservation->id,
+                    $reservation->getIdentifier(),
+                    $reservation->amount_string,
+                    PaymentType::getLabel($reservation->payment_type),
+                    ReservationStatus::getLabel($reservation->status),
+                    !empty($owner) ? $owner->person_type : null,
+                    !empty($owner) ? $owner->first_name : null,
+                    !empty($owner) ? $owner->last_name : null,
+                    !empty($owner) ? $owner->email : null,
+                    !empty($owner) ? $owner->code : null,
+                    !empty($owner) ? $owner->company_person : null,
+                    !empty($owner) ? $owner->company_name : null,
+                    !empty($owner) ? $owner->company_account : null,
+                    !empty($owner) ? $owner->company_bank : null,
+                    !empty($owner) ? $owner->company_city : null,
+                    !empty($owner) ? $owner->company_street : null,
+                    !empty($owner) ? $owner->company_country : null,
+                    !empty($owner) ? $owner->company_postal_code : null,
+                ];
+            }
+
+            $writer->addRowsWithStyle($add, $style);
+            $i = $i + $batchSize;
+        }
+        $writer->close();
+        die;
+    }
 }
